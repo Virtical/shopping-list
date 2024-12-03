@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>ПП2 | Команда 5</title>
+    <style>
+        td {padding:5px;}
+        button{margin: 5px;}
+    </style>
+</head>
+<body>
+<h2>Список покупок</h2>
+<div>
+    <input type="hidden" id="purchaseId" />
+    <p>
+        Название:<br/>
+        <input id="purchaseName" />
+    </p>
+    <p>
+        Количество:<br />
+        <input id="purchaseCount" type="number" />
+    </p>
+    <p>
+        <button id="saveBtn">Сохранить</button>
+        <button id="resetBtn">Сбросить</button>
+    </p>
+</div>
+<table>
+    <thead><tr><th>Название</th><th>Количество</th><th></th></tr></thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    async function getPurchases() {
+        const response = await fetch("/api/users", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (response.ok === true) {
+            const purchases = await response.json();
+            const rows = document.querySelector("tbody");
+            purchases.forEach(purchase => rows.append(row(purchase)));
+        }
+    }
+
+    async function getPurchase(id) {
+        const response = await fetch(`/api/users/${id}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (response.ok === true) {
+            const purchase = await response.json();
+            document.getElementById("purchaseId").value = purchase.id;
+            document.getElementById("purchaseName").value = purchase.name;
+            document.getElementById("purchaseCount").value = purchase.count;
+        }
+        else {
+            const error = await response.json();
+            console.log(error.message);
+        }
+    }
+    async function createPurchase(purchaseName, purchaseCount) {
+
+        const response = await fetch("api/users", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: purchaseName,
+                count: parseInt(purchaseCount, 10)
+            })
+        });
+        if (response.ok === true) {
+            const purchase = await response.json();
+            document.querySelector("tbody").append(row(purchase));
+        }
+        else {
+            const error = await response.json();
+            console.log(error.message);
+        }
+    }
+
+    async function editPurchase(purchaseId, purchaseName, purchaseCount) {
+        const response = await fetch("api/users", {
+            method: "PUT",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: purchaseId,
+                name: purchaseName,
+                count: parseInt(purchaseCount, 10)
+            })
+        });
+        if (response.ok === true) {
+            const purchase = await response.json();
+            document.querySelector(`tr[data-rowid='${purchase.id}']`).replaceWith(row(purchase));
+        }
+        else {
+            const error = await response.json();
+            console.log(error.message);
+        }
+    }
+    
+    async function deletePurchase(id) {
+        const response = await fetch(`/api/users/${id}`, {
+            method: "DELETE",
+            headers: { "Accept": "application/json" }
+        });
+        if (response.ok === true) {
+            const purchase = await response.json();
+            document.querySelector(`tr[data-rowid='${purchase.id}']`).remove();
+        }
+        else {
+            const error = await response.json();
+            console.log(error.message);
+        }
+    }
+    
+    function reset() {
+        document.getElementById("purchaseId").value =
+            document.getElementById("purchaseName").value =
+                document.getElementById("purchaseCount").value = "";
+    }
+
+    function row(purchase) {
+
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-rowid", purchase.id);
+
+        const nameTd = document.createElement("td");
+        nameTd.append(purchase.name);
+        tr.append(nameTd);
+
+        const countTd = document.createElement("td");
+        countTd.append(purchase.count);
+        tr.append(countTd);
+
+        const linksTd = document.createElement("td");
+
+        const editLink = document.createElement("button");
+        editLink.append("Изменить");
+        editLink.addEventListener("click", async() => await getPurchase(purchase.id));
+        linksTd.append(editLink);
+
+        const removeLink = document.createElement("button");
+        removeLink.append("Удалить");
+        removeLink.addEventListener("click", async () => await deletePurchase(purchase.id));
+
+        linksTd.append(removeLink);
+        tr.appendChild(linksTd);
+
+        return tr;
+    }
+    
+    document.getElementById("resetBtn").addEventListener("click", () =>  reset());
+    
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+
+        const id = document.getElementById("purchaseId").value;
+        const name = document.getElementById("purchaseName").value;
+        const count = document.getElementById("purchaseCount").value;
+        if (id === "")
+            await createPurchase(name, count);
+        else
+            await editPurchase(id, name, count);
+        reset();
+    });
+    
+    getPurchases();
+</script>
+</body>
+</html>
