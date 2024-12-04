@@ -1,14 +1,12 @@
+using Microsoft.EntityFrameworkCore;
 using shopping_list;
 using static System.Text.RegularExpressions.Regex;
-
-var purchases = new List<Purchase> 
-{ 
-    new() { Id = Guid.NewGuid().ToString(), Name = "Яйца", Count = 1 },
-    new() { Id = Guid.NewGuid().ToString(), Name = "Шоколадка", Count = 2 },
-    new() { Id = Guid.NewGuid().ToString(), Name = "Печенье", Count = 3 }
-};
  
 var builder = WebApplication.CreateBuilder();
+
+builder.Services.AddDbContext<ApplicationContext>(options =>
+    options.UseNpgsql("Host=178.253.43.74;Port=5432;Database=purchases_db;Username=gen_user;Password=I=YAv5XsNiBZ(B"));
+
 var app = builder.Build();
  
 app.Run(async (context) =>
@@ -18,27 +16,31 @@ app.Run(async (context) =>
     var path = request.Path;
     
     const string expressionForGuid = @"^/api/users/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$";
+    
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    
     if (path == "/api/users" && request.Method=="GET")
     {
-        await GetAllPurchases(response); 
+        await GetAllPurchases(response, dbContext); 
     }
     else if (IsMatch(path, expressionForGuid) && request.Method == "GET")
     {
         var id = path.Value?.Split("/")[3];
-        await GetPurchase(id, response);
+        await GetPurchase(id, response, dbContext);
     }
     else if (path == "/api/users" && request.Method == "POST")
     {
-        await CreatePurchase(response, request);
+        await CreatePurchase(response, request, dbContext);
     }
     else if (path == "/api/users" && request.Method == "PUT")
     {
-        await UpdatePurchase(response, request);
+        await UpdatePurchase(response, request, dbContext);
     }
     else if (IsMatch(path, expressionForGuid) && request.Method == "DELETE")
     {
         string? id = path.Value?.Split("/")[3];
-        await DeletePurchase(id, response);
+        await DeletePurchase(id, response, dbContext);
     }
     else
     {
@@ -50,29 +52,17 @@ app.Run(async (context) =>
  
 app.Run();
 
-async Task GetAllPurchases(HttpResponse response)
+async Task GetAllPurchases(HttpResponse response, ApplicationContext dbContext)
 {
+    var purchases = await dbContext.Purchases.ToListAsync();
     await response.WriteAsJsonAsync(purchases);
 }
 
-async Task GetPurchase(string? id, HttpResponse response)
+async Task GetPurchase(string? id, HttpResponse response, ApplicationContext dbContext)
 {
-    var purchase = purchases.FirstOrDefault((u) => u.Id == id);
-    if (purchase != null)
-        await response.WriteAsJsonAsync(purchase);
-    else
-    {
-        response.StatusCode = 404;
-        await response.WriteAsJsonAsync(new { message = "Покупка не найдена" });
-    }
-}
- 
-async Task DeletePurchase(string? id, HttpResponse response)
-{
-    var purchase = purchases.FirstOrDefault((u) => u.Id == id);
+    var purchase = await dbContext.Purchases.FindAsync(id);
     if (purchase != null)
     {
-        purchases.Remove(purchase);
         await response.WriteAsJsonAsync(purchase);
     }
     else
@@ -82,7 +72,23 @@ async Task DeletePurchase(string? id, HttpResponse response)
     }
 }
  
-async Task CreatePurchase(HttpResponse response, HttpRequest request)
+async Task DeletePurchase(string? id, HttpResponse response, ApplicationContext dbContext)
+{
+    var purchase = await dbContext.Purchases.FindAsync(id);
+    if (purchase != null)
+    {
+        dbContext.Purchases.Remove(purchase);
+        await dbContext.SaveChangesAsync();
+        await response.WriteAsJsonAsync(purchase);
+    }
+    else
+    {
+        response.StatusCode = 404;
+        await response.WriteAsJsonAsync(new { message = "Покупка не найдена" });
+    }
+}
+ 
+async Task CreatePurchase(HttpResponse response, HttpRequest request, ApplicationContext dbContext)
 {
     try
     {
@@ -90,7 +96,8 @@ async Task CreatePurchase(HttpResponse response, HttpRequest request)
         if (purchase != null)
         {
             purchase.Id = Guid.NewGuid().ToString();
-            purchases.Add(purchase);
+            dbContext.Purchases.Add(purchase);
+            await dbContext.SaveChangesAsync();
             await response.WriteAsJsonAsync(purchase);
         }
         else
@@ -105,18 +112,19 @@ async Task CreatePurchase(HttpResponse response, HttpRequest request)
     }
 }
  
-async Task UpdatePurchase(HttpResponse response, HttpRequest request)
+async Task UpdatePurchase(HttpResponse response, HttpRequest request, ApplicationContext dbContext)
 {
     try
     {
         var purchaseData = await request.ReadFromJsonAsync<Purchase>();
         if (purchaseData != null)
         {
-            var purchase = purchases.FirstOrDefault(u => u.Id == purchaseData.Id);
+            var purchase = await dbContext.Purchases.FindAsync(purchaseData.Id);
             if (purchase != null)
             {
-                purchase.Count = purchaseData.Count;
                 purchase.Name = purchaseData.Name;
+                purchase.Count = purchaseData.Count;
+                await dbContext.SaveChangesAsync();
                 await response.WriteAsJsonAsync(purchase);
             }
             else
