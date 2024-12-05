@@ -45,7 +45,7 @@
     }
 
     async function getPurchase(id) {
-        const response = await fetch(`/api/users/${id}`, {
+        const response = await fetch(`/api/user/${id}`, {
             method: "GET",
             headers: { "Accept": "application/json" }
         });
@@ -62,7 +62,7 @@
     }
     async function createPurchase(purchaseName, purchaseCount) {
 
-        const response = await fetch("api/users", {
+        const response = await fetch("api/createuser", {
             method: "POST",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -81,7 +81,7 @@
     }
 
     async function editPurchase(purchaseId, purchaseName, purchaseCount) {
-        const response = await fetch("api/users", {
+        const response = await fetch("api/edituser", {
             method: "PUT",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -101,7 +101,7 @@
     }
     
     async function deletePurchase(id) {
-        const response = await fetch(`/api/users/${id}`, {
+        const response = await fetch(`/api/deleteuser/${id}`, {
             method: "DELETE",
             headers: { "Accept": "application/json" }
         });

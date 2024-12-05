@@ -1,55 +1,69 @@
 using Microsoft.EntityFrameworkCore;
 using shopping_list;
-using static System.Text.RegularExpressions.Regex;
- 
+
 var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseNpgsql("Host=178.253.43.74;Port=5432;Database=purchases_db;Username=gen_user;Password=I=YAv5XsNiBZ(B"));
 
 var app = builder.Build();
- 
-app.Run(async (context) =>
+
+// Главная страница
+app.Map("/", async (context) =>
+{
+    var response = context.Response;
+    response.ContentType = "text/html; charset=utf-8";
+    response.Headers.ContentLanguage = "ru-RU";
+    await response.SendFileAsync("html/index.html");
+});
+
+// Получить всех пользователей
+app.Map($"/api/users", async (context) =>
+{
+    var response = context.Response;
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    await GetAllPurchases(response, dbContext);
+});
+
+// Получить пользователя по ID
+app.Map($"/api/user/{{id}}", async (HttpContext context, string id) =>
+{
+    var response = context.Response;
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    await GetPurchase(id, response, dbContext);
+});
+
+// Добавить нового пользователя
+app.MapPost("/api/createuser", async (context) =>
 {
     var response = context.Response;
     var request = context.Request;
-    var path = request.Path;
-    
-    const string expressionForGuid = @"^/api/users/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$";
-    
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    
-    if (path == "/api/users" && request.Method=="GET")
-    {
-        await GetAllPurchases(response, dbContext); 
-    }
-    else if (IsMatch(path, expressionForGuid) && request.Method == "GET")
-    {
-        var id = path.Value?.Split("/")[3];
-        await GetPurchase(id, response, dbContext);
-    }
-    else if (path == "/api/users" && request.Method == "POST")
-    {
-        await CreatePurchase(response, request, dbContext);
-    }
-    else if (path == "/api/users" && request.Method == "PUT")
-    {
-        await UpdatePurchase(response, request, dbContext);
-    }
-    else if (IsMatch(path, expressionForGuid) && request.Method == "DELETE")
-    {
-        string? id = path.Value?.Split("/")[3];
-        await DeletePurchase(id, response, dbContext);
-    }
-    else
-    {
-        response.ContentType = "text/html; charset=utf-8";
-        response.Headers.ContentLanguage = "ru-RU";
-        await response.SendFileAsync("html/index.html");
-    }
+    await CreatePurchase(response, request, dbContext);
 });
- 
+
+// Обновить данные пользователя
+app.MapPut("/api/edituser", async (context) =>
+{
+    var response = context.Response;
+    var request = context.Request;
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    await UpdatePurchase(response, request, dbContext);
+});
+
+// Удалить пользователя
+app.MapDelete($"/api/deleteuser/{{id}}", async (HttpContext context, string id) =>
+{
+    var response = context.Response;
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    await DeletePurchase(id, response, dbContext);
+});
+
 app.Run();
 
 async Task GetAllPurchases(HttpResponse response, ApplicationContext dbContext)

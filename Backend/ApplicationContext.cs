@@ -1,6 +1,6 @@
-﻿namespace shopping_list;
-using Microsoft.EntityFrameworkCore;
- 
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace shopping_list;
 public sealed class ApplicationContext : DbContext
 {
     public DbSet<Purchase> Purchases { get; set; } = null!;
