@@ -242,3 +242,39 @@ _Pvt_Extensions
 
 # Desktop icon
 desktop.ini
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Билд
+build/
+dist/
+
+# ESLint
+.eslintcache
+
+# Babel
+.cache/
+
+# Log файлы
+logs/
+*.log
+
+# Editor специфичные
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS специфичные
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# .env файлы
+.env
+.env.*.local
