@@ -27,15 +27,30 @@ export default function App() {
       lists.map((list) => (list.id === updatedList.id ? updatedList : list))
     );
   };
+
+  //---------------> Получение данных с бекенда <---------------
+  const [newLists, setNewLists] = useState([]); // Создаём пустой массив
   
-useEffect(() =>{getData();},[]);
+  useEffect(() =>{  // useEffect без параметров => вызывается при загрузки страницы
+    getData();      // Вызываем функцию getData
+  },[]);
 
-async function getData() {
-  const response = await fetch('https://virtical-backend-df55.twc1.net/api/purchases')
-  const data = await response.json();
-  console.log(data);
-}
+  async function getData() {
+    try {
+      const response = await fetch("https://virtical-backend-df55.twc1.net/api/purchases"); // Делаем запрос по url
+      const data = await response.json();                                                   // Преобразуем ответ в json
+      setNewLists(data);                                                                    // Задаём значение переменной newLists, через useState
+    } catch (error) {
+      console.error("Ошибка при загрузке данных:", error);
+    }
+  }
+  //------------------------------------------------------------
 
+  // Выводим значние в консоль, если newLists изменился.
+  useEffect(() =>{
+    console.log(newLists);
+  },[newLists]);
+  //------------------------------------------------------------
 
   return (
     <div className="app">
