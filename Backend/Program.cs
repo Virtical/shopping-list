@@ -1,8 +1,13 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using shopping_list;
+using shopping_list.DataBase;
 using shopping_list.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => options.LoginPath = "/login");
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -22,20 +27,17 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseCors();
-
-app.UseSwagger(); 
+app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapControllers();
-
-app.MapGet("/", async context =>
-{
-    context.Response.ContentType = "text/html; charset=utf-8";
-    await context.Response.SendFileAsync("wwwroot/index.html");
-});
 
 app.Run();

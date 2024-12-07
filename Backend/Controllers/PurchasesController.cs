@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using shopping_list.Services;
 
 namespace shopping_list.Controllers;
@@ -18,7 +19,10 @@ namespace shopping_list.Controllers;
         [Route("purchases")]
         public async Task<IActionResult> GetAllPurchases()
         {
-            var users = await purchaseService.GetAllPurchasesAsync();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+            
+            var users = await purchaseService.GetAllPurchasesByUserIdAsync(userId.Value);
             return Ok(users);
         }
 
@@ -43,8 +47,15 @@ namespace shopping_list.Controllers;
                 return BadRequest(new { message = "Некорректные данные" });
             }
 
-            var createdUser = await purchaseService.CreatePurchaseAsync(purchase);
-            return CreatedAtAction(nameof(GetPurchaseById), new { id = createdUser.Id }, createdUser);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userId != null)
+            {
+                purchase.UserId = userId.Value;
+            }
+
+            var createdPurchase = await purchaseService.CreatePurchaseAsync(purchase);
+            return CreatedAtAction(nameof(GetPurchaseById), new { id = createdPurchase.Id }, createdPurchase);
         }
 
         [HttpPut]

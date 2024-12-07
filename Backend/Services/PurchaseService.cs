@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using shopping_list.DataBase;
 
 namespace shopping_list.Services;
 
@@ -9,6 +10,7 @@ public interface IPurchaseService
     Task<Purchase> CreatePurchaseAsync(Purchase purchase);
     Task<Purchase?> UpdatePurchaseAsync(Purchase purchase);
     Task<Purchase?> DeletePurchaseAsync(string id);
+    Task<List<Purchase>> GetAllPurchasesByUserIdAsync(string id);
 }
 
 public class PurchaseService : IPurchaseService
@@ -28,6 +30,11 @@ public class PurchaseService : IPurchaseService
     public async Task<Purchase?> GetPurchaseByIdAsync(string id)
     {
         return await dbContext.Purchases.FindAsync(id);
+    }
+    
+    public async Task<List<Purchase>> GetAllPurchasesByUserIdAsync(string id)
+    {
+        return await dbContext.Purchases.Where(purchase => purchase.UserId == id).ToListAsync();
     }
 
     public async Task<Purchase> CreatePurchaseAsync(Purchase purchase)
