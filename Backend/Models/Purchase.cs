@@ -1,9 +1,21 @@
-﻿namespace shopping_list;
+﻿namespace shopping_list.Models;
 
 public class Purchase
 {
-    public string Id { get; set; } = "";
-    public string UserId { get; set; } = "";
-    public string Name { get; set; } = "";
-    public int Count { get; set; }
+    public Purchase(string name, double count, int type, string listId, string userId)
+    {
+        Id = Guid.NewGuid().ToString();
+        Name = name;
+        Count = count;
+        Type = type;
+        ListId = listId;
+        UserId = userId;
+    }
+    
+    public string Id { get; init; }
+    public string UserId { get; init; }
+    public string Name { get; set; }
+    public double Count { get; set; }
+    public int Type { get; set; }
+    public string ListId { get; init; }
 }

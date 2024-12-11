@@ -8,20 +8,42 @@ const LoginForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login Successful:', formData);
-    
+    try {
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          login: formData.username,
+          password: formData.password,
+        }),
+      });
+
+      setFormData({ username: '', password: '' });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при выполнении запроса');
+      }
+      
+      window.location.href = '/list';
+    } catch (error) {
+      console.error('Ошибка:', error);
+    }
   };
 
+
   return (
+    <>
     <div className="login-container">
       <h2>Войти</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
           name="username"
-          placeholder="Логин"
+          placeholder="Введите логин:"
           value={formData.username}
           onChange={handleChange}
           required
@@ -29,17 +51,18 @@ const LoginForm = () => {
         <input
           type="password"
           name="password"
-          placeholder="Пароль"
+          placeholder="Введите пароль:"
           value={formData.password}
           onChange={handleChange}
           required
         />
         <button type="submit">Войти</button>
       </form>
-      <p className="no-account">
-        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
-      </p>
     </div>
+    <p className="no-account">
+        <a href="/registration">Зарегистрироваться</a>
+      </p>
+    </>
   );
 };
 

@@ -1,12 +1,10 @@
-/* Общие стили для контейнера */
 body {
   font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #a8e063, #56ab2f); /* Салатовый градиент */
+  background: rgba(186, 219, 173, 1);
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
   height: 100vh;
   overflow: hidden;
 }
@@ -15,10 +13,11 @@ body {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin-top: 19vh;
   padding: 40px;
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
+  width: 40vw;
+  height: 50vh;
+  justify-content: center;
   animation: fadeIn 1s ease-in-out;
 }
 
@@ -33,36 +32,40 @@ body {
   }
 }
 
-/* Заголовок формы */
 .registration-container h2 {
-  font-size: 24px;
+  text-align: center;
+  font-size: 2.5vw;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 5vh;
+  display: block;
 }
 
-/* Стили для полей ввода */
 .registration-container input {
+  background: rgba(238, 238, 238, 1);
+  color: rgba(141, 141, 141, 1);
   width: 100%;
   padding: 12px 20px;
-  margin-bottom: 15px;
+  margin-bottom: 5vh;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 1.5vh;
+  height: 7vh;
   transition: border-color 0.3s ease;
   box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 .registration-container input:focus {
   outline: none;
-  border-color: #a8e063; /* Салатовая подсветка */
+  border-color: #a8e063;
   box-shadow: 0 0 8px rgba(168, 224, 99, 0.4);
 }
 
-/* Стили для кнопки */
 .registration-container button {
-  background: linear-gradient(135deg, #a8e063, #56ab2f); /* Салатовый градиент */
+  height: 7vh;
+  font-weight: 600;
+  background: rgba(126, 188, 102, 1);
   color: white;
-  font-size: 16px;
+  font-size: 1.2vw;
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
@@ -81,20 +84,24 @@ body {
   box-shadow: 0 5px 10px rgba(168, 224, 99, 0.3);
 }
 
-/* Добавляем стили для текста и ссылки */
 .already-registered {
-  margin-top: 20px;
-  font-size: 14px;
+  margin-top: 2.5vh;
+  font-size: 1.7vh;
   color: #666;
+  display: flex;
+  justify-content: center;
 }
 
 .already-registered a {
-  color: #56ab2f; 
+  color: rgba(32, 76, 15, 1);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
+  display: block;
+  text-align: center;
+  margin-left: 0.7vw;
 }
 
 .already-registered a:hover {
-  color: #a8e063; 
+  color: rgb(44, 104, 20);
 }

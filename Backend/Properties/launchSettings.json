@@ -5,7 +5,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://virtical-backend-df55.twc1.net",
+      "applicationUrl": "http://virtical-backend-499c.twc1.net",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -14,7 +14,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://virtical-backend-df55.twc1.net",
+      "applicationUrl": "https://virtical-backend-499c.twc1.net",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

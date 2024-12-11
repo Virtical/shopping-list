@@ -1,89 +1,116 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using shopping_list.Services;
+using Microsoft.EntityFrameworkCore;
+using shopping_list.Contracts;
+using shopping_list.DataAccess;
+using shopping_list.Models;
 
 namespace shopping_list.Controllers;
 
     [ApiController]
     [Route("api")]
-    public class PurchasesController : ControllerBase
+    public class PurchasesController(ShopingListDbContext shopingListDbContext) : ControllerBase
     {
-        private readonly IPurchaseService purchaseService;
-
-        public PurchasesController(IPurchaseService purchaseService)
-        {
-            this.purchaseService = purchaseService;
-        }
-
         [HttpGet]
         [Route("purchases")]
-        public async Task<IActionResult> GetAllPurchases()
+        public async Task<IActionResult> GetAllPurchasesByListId(CancellationToken ct)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
             
-            var users = await purchaseService.GetAllPurchasesByUserIdAsync(userId.Value);
-            return Ok(users);
+            var purchases = await shopingListDbContext.Purchases.Where(p => p.UserId == userId.Value).ToListAsync(ct);
+            return Ok(purchases);
+        }
+        
+        [HttpGet]
+        [Route("getshare")]
+        public async Task<IActionResult> GetShare([FromQuery] string listId, CancellationToken ct)
+        {
+            var purchases = await shopingListDbContext.Purchases.Where(p => p.ListId == listId).ToListAsync(ct);
+            return Ok(purchases);
         }
 
         [HttpGet]
-        [Route("purchases/{id}")]
-        public async Task<IActionResult> GetPurchaseById(string id)
+        [Route("purchase")]
+        public async Task<IActionResult> GetPurchaseById([FromQuery] GetPurchaseByIdRequest request, CancellationToken ct)
         {
-            var user = await purchaseService.GetPurchaseByIdAsync(id);
-            if (user == null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Некорректные данные" });
+            }
+
+            var purchase = await shopingListDbContext.Purchases.Where(p => p.Id == request.Id).FirstOrDefaultAsync(ct);
+            if (purchase == null)
             {
                 return NotFound(new { message = "Покупка не найдена" });
             }
-            return Ok(user);
+            
+            return Ok(purchase);
         }
 
         [HttpPost]
-        [Route("purchases")]
-        public async Task<IActionResult> CreatePurchase([FromBody] Purchase purchase)
+        [Route("purchase")]
+        public async Task<IActionResult> CreatePurchase([FromBody] CreatePurchaseRequest request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { message = "Некорректные данные" });
             }
-
+            
             var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
 
-            if (userId != null)
-            {
-                purchase.UserId = userId.Value;
-            }
+            var purchase = new Purchase(request.Name, request.Count, request.Type,
+                request.ListId, userId.Value);
 
-            var createdPurchase = await purchaseService.CreatePurchaseAsync(purchase);
-            return CreatedAtAction(nameof(GetPurchaseById), new { id = createdPurchase.Id }, createdPurchase);
+            await shopingListDbContext.Purchases.AddAsync(purchase, ct);
+            await shopingListDbContext.SaveChangesAsync(ct);
+            
+            return Ok(purchase);
         }
 
         [HttpPut]
-        [Route("purchases")]
-        public async Task<IActionResult> UpdatePurchase([FromBody] Purchase purchase)
+        [Route("purchase")]
+        public async Task<IActionResult> UpdatePurchase([FromBody] PutPurchaseRequest request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { message = "Некорректные данные" });
             }
-
-            var updatedUser = await purchaseService.UpdatePurchaseAsync(purchase);
-            if (updatedUser == null)
+            
+            var purchase = await shopingListDbContext.Purchases.Where(p => p.Id == request.Id).FirstOrDefaultAsync(ct);
+            if (purchase == null)
             {
                 return NotFound(new { message = "Покупка не найдена" });
             }
-            return Ok(updatedUser);
+            
+            purchase.Count = request.Count;
+            purchase.Name = request.Name;
+            purchase.Type = request.Type;
+
+            await shopingListDbContext.SaveChangesAsync(ct);
+            
+            return Ok(purchase);
         }
 
         [HttpDelete]
-        [Route("purchases/{id}")]
-        public async Task<IActionResult> DeletePurchase(string id)
+        [Route("purchase")]
+        public async Task<IActionResult> DeletePurchase([FromBody] DeletePurchaseRequest request, CancellationToken ct)
         {
-            var deletedUser = await purchaseService.DeletePurchaseAsync(id);
-            if (deletedUser == null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Некорректные данные" });
+            }
+            
+            var purchase = await shopingListDbContext.Purchases.Where(p => p.Id == request.Id).FirstOrDefaultAsync(ct);
+            if (purchase == null)
             {
                 return NotFound(new { message = "Покупка не найдена" });
             }
-            return Ok(deletedUser);
+
+            shopingListDbContext.Purchases.Remove(purchase);
+            await shopingListDbContext.SaveChangesAsync(ct);
+            
+            return Ok(purchase);
         }
     }
