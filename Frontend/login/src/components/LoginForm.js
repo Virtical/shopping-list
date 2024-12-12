@@ -27,10 +27,10 @@ const LoginForm = () => {
       if (!response.ok) {
         throw new Error('Ошибка при выполнении запроса');
       }
-      
+        
       window.location.href = '/list';
     } catch (error) {
-      console.error('Ошибка:', error);
+      alert('Ошибка:', error);
     }
   };
 

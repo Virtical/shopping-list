@@ -30,6 +30,8 @@ const RegistrationForm = () => {
       if (!response.ok) {
         throw new Error('Ошибка при выполнении запроса');
       }
+
+      alert("Успешная регистрация!")
       
       window.location.href = '/login';
     } catch (error) {

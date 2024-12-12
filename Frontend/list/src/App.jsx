@@ -19,8 +19,6 @@ export default function App() {
   const [newPurchaseCount, setNewPurchaseCount] = useState("");
   const [newPurchaseType, setNewPurchaseType] = useState(0);
 
-  const [newShare, setNewShare] = useState(null);
-
   const handleCreateList = () => {
     setIsCreating(true);
   };
@@ -161,8 +159,16 @@ export default function App() {
   }
 
   const handleCopy = () => {
-    const textToCopy = `${window.location.protocol}//${window.location.host}/getshare?listId=` + curList.id;
-    setNewShare(textToCopy)
+    const textToCopy = `${window.location.protocol}//${window.location.host}/share?listId=` + curList.id;
+    
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        alert("Ссылка скопирована в буфер обмена!");
+      })
+      .catch((err) => {
+        console.error("Ошибка при копировании: ", err);
+      });
+
   };
 
   return (
@@ -257,8 +263,9 @@ export default function App() {
           </div>
         )}
       </main>
+      {curList && (
       <p className="share-list" onClick={handleCopy}>Поделиться</p>
-      <p>{newShare}</p>
+      )}
     </div>
   )
 }
